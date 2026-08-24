@@ -1,0 +1,35 @@
+{
+  "project": "CleanCheckpoint",
+  "case_id": "CC-STUDIONET-DISPUTE-20260824-001",
+  "uploaded_at": "2026-08-24T04:49:24Z",
+  "gateway": "https://gateway.pinata.cloud/ipfs/",
+  "artifacts": [
+    {
+      "role": "TERMS",
+      "file": "runtime-inputs/terms.json",
+      "cid": "QmQBQDCyfCNC63GBDCSP7WfTNBkTSWSRpUg4Hr7aZjAdKH",
+      "url": "https://gateway.pinata.cloud/ipfs/QmQBQDCyfCNC63GBDCSP7WfTNBkTSWSRpUg4Hr7aZjAdKH",
+      "bytes": 582,
+      "sha256": "sha256:03d4c0e4185b0a7da060a9f1efc0e29cf6e6d3cc9ae3030de56de7c754873cff",
+      "independent_fetch_exact_match": true
+    },
+    {
+      "role": "PROVIDER_COMPLETION",
+      "file": "runtime-inputs/provider-completion.json",
+      "cid": "QmWzpoMsDRrAWfWaLoY21QmwsStcYY8Z66k8yvG8rGsfgP",
+      "url": "https://gateway.pinata.cloud/ipfs/QmWzpoMsDRrAWfWaLoY21QmwsStcYY8Z66k8yvG8rGsfgP",
+      "bytes": 442,
+      "sha256": "sha256:c9dee431e40daf70e2ac0ebe94d3585356ee6677990f3a2687ae09cbfae20719",
+      "independent_fetch_exact_match": true
+    },
+    {
+      "role": "CLIENT_RESPONSE",
+      "file": "runtime-inputs/client-response.json",
+      "cid": "QmeGVuNHeq9Vs21QSRFzNW3TxR19eXijfbropBteGdP1To",
+      "url": "https://gateway.pinata.cloud/ipfs/QmeGVuNHeq9Vs21QSRFzNW3TxR19eXijfbropBteGdP1To",
+      "bytes": 563,
+      "sha256": "sha256:1eb2a75bdc6bce174d6f06df3f05117fad0ee35222d5106e32e9b664d60a0ba2",
+      "independent_fetch_exact_match": true
+    }
+  ]
+}

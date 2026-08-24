@@ -1,0 +1,8 @@
+{
+  "job_id": "cleancheckpoint-demo-001",
+  "service": "HOME",
+  "required_checkpoints": ["ARRIVAL", "WORK_STARTED", "CHECKLIST_SUBMITTED", "COMPLETION"],
+  "scope": ["kitchen surfaces", "living-room floor", "bathroom fixtures"],
+  "privacy": "No interior photographs required",
+  "client_response_window": "15 minutes"
+}

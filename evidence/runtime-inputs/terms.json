@@ -1,0 +1,20 @@
+{
+  "schema": "cleancheckpoint/service-terms/v1",
+  "case_id": "CC-STUDIONET-DISPUTE-20260824-001",
+  "service": "HOME",
+  "scope": [
+    "kitchen surfaces",
+    "living room floor",
+    "bathroom fixtures"
+  ],
+  "required_checkpoints": [
+    "ARRIVAL",
+    "WORK_STARTED",
+    "CHECKLIST_SUBMITTED",
+    "COMPLETION",
+    "CLIENT_RESPONSE"
+  ],
+  "completion_rule": "FULL means all three scoped tasks were completed.",
+  "privacy_rule": "No private interior photographs are required.",
+  "payout_policy": "The contract deterministically derives payout from bounded jury facts."
+}

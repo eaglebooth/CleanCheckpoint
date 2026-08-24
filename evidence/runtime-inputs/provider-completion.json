@@ -1,0 +1,16 @@
+{
+  "schema": "cleancheckpoint/provider-checkpoint/v1",
+  "case_id": "CC-STUDIONET-DISPUTE-20260824-001",
+  "actor_role": "PROVIDER",
+  "checkpoint_kind": "COMPLETION",
+  "revision": 1,
+  "arrival": "YES",
+  "work_started": "YES",
+  "completed_scope": [
+    "kitchen surfaces",
+    "living room floor",
+    "bathroom fixtures"
+  ],
+  "completion": "FULL",
+  "statement": "The provider arrived and completed every task in the locked scope."
+}

@@ -1,0 +1,17 @@
+{
+  "schema": "cleancheckpoint/client-response/v1",
+  "case_id": "CC-STUDIONET-DISPUTE-20260824-001",
+  "actor_role": "CLIENT",
+  "checkpoint_kind": "CLIENT_RESPONSE",
+  "revision": 1,
+  "arrival": "YES",
+  "acknowledged_scope": [
+    "kitchen surfaces",
+    "living room floor",
+    "bathroom fixtures"
+  ],
+  "completion": "FULL",
+  "client_response": "DISPUTED",
+  "source_conflict": "NO",
+  "statement": "The client confirms full completion and arrival, but records a non-scope communication dispute. There is no factual conflict about service completion."
+}
