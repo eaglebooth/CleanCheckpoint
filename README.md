@@ -17,6 +17,9 @@ JOB_OPEN -> PROVIDER_ACCEPTED -> CHECKPOINTS_ACTIVE
 CHECKPOINTS_ACTIVE -> SETTLED                         (mutual completion)
 CHECKPOINTS_ACTIVE -> DISPUTED -> ADJUDICATED -> SETTLED
 DISPUTED -> RECOVERY -> SETTLED                      (unavailable/conflicting evidence)
+PROVIDER_ACCEPTED -> SETTLED                          (client non-funding timeout)
+CHECKPOINTS_ACTIVE -> SETTLED                         (completion/response timeout)
+DISPUTED | RECOVERY -> SETTLED                       (stalled adjudication/evidence timeout)
 ```
 
 ## Local setup
@@ -40,7 +43,7 @@ Configure a deployed address from the header menu. The app uses `genlayer-js`, r
 - `open_dispute(job_id)`: requires evidence from both roles.
 - `adjudicate(job_id)`: semantic classification of four bounded facts.
 - `settle(job_id)`: deterministic payout calculation and transfers.
-- `recover(job_id)`: deadline-bounded conflict recovery.
+- `recover(job_id)`: permissionless-for-parties terminal router covering every funded nonterminal state.
 - `get_job(job_id)`, `get_totals()`: reviewer-facing authoritative views.
 
 ## Trust boundaries and limitations
@@ -50,6 +53,20 @@ Configure a deployed address from the header menu. The app uses `genlayer-js`, r
 - For production, add provider-signed booking/check-in attestations and a vetted evidence gateway registry.
 - GenLayer is unnecessary when both parties agree; that path is intentionally deterministic.
 - Semantic consensus can remain unresolved. The contract fails closed into bounded recovery instead of claiming a successful verdict.
+
+## Deadline terminal exits
+
+| Funded state | Deadline | Missing obligation | Terminal result |
+| --- | --- | --- | --- |
+| `PROVIDER_ACCEPTED` | service deadline | client never funds | `CLIENT_NON_FUNDING`: provider bond returned |
+| `CHECKPOINTS_ACTIVE` | recovery deadline | provider has no completion checkpoint | `PROVIDER_COMPLETION_DEFAULT`: client fee refunded and provider bond paid to client |
+| `CHECKPOINTS_ACTIVE` | recovery deadline | provider completed; client never responds | `CLIENT_RESPONSE_DEFAULT`: provider receives fee and bond return |
+| `CHECKPOINTS_ACTIVE` | recovery deadline | both parties submitted but no terminal action | neutral evidence recovery: each principal returned |
+| `DISPUTED` | recovery deadline | adjudication stalled or failed | `ADJUDICATION_TIMEOUT`: each principal returned |
+| `RECOVERY` | recovery deadline | evidence remained conflicting/unavailable | `EVIDENCE_RECOVERY`: each principal returned |
+| `ADJUDICATED` | callable immediately | settlement not yet called | locked verdict is settled; timeout cannot rewrite it |
+
+All routes close state before transfer, reject outsiders and repeat calls, and preserve `deposited = held + paid + refunded`.
 
 ## Release policy
 

@@ -11,7 +11,7 @@ from genlayer_py import create_account, create_client
 from genlayer_py.chains import studionet
 
 
-ADDRESS = "0x6e2A785B1699067F8573e765B601f651917D7e47"
+ADDRESS = "0x9bC7649FA843E5FFa4E6f63E2b392D0071E86016"
 RPC_URL = "https://studio.genlayer.com/api"
 FEE = 10**16
 BOND = 10**15
@@ -105,7 +105,8 @@ def main():
     final = wait_for("PAYOUT_SETTLED", lambda: {
         "ready": read("get_job", [job_id])["status"] == "SETTLED"
         and read("get_job", [job_id])["verdict"] == "FULL_PAYOUT"
-        and int(read("get_job", [job_id])["provider_paid"]) == FEE + BOND
+        and int(read("get_job", [job_id])["provider_paid"]) == FEE
+        and int(read("get_job", [job_id])["provider_refunded"]) == BOND
         and int(read("get_totals")["held"]) == held_before
         and int(chain.get_balance(ADDRESS)) == contract_before,
         "job": read("get_job", [job_id]), "totals": read("get_totals"),

@@ -40,6 +40,8 @@ class CleanCheckpoint(gl.Contract):
     job_response_fact: TreeMap[u256, str]
     job_conflict_fact: TreeMap[u256, str]
     job_provider_paid: TreeMap[u256, u256]
+    job_provider_refunded: TreeMap[u256, u256]
+    job_client_paid: TreeMap[u256, u256]
     job_client_refunded: TreeMap[u256, u256]
 
     checkpoint_job: TreeMap[u256, u256]
@@ -53,6 +55,8 @@ class CleanCheckpoint(gl.Contract):
 
     latest_provider_checkpoint: TreeMap[u256, u256]
     latest_client_checkpoint: TreeMap[u256, u256]
+    provider_completion_checkpoint: TreeMap[u256, u256]
+    client_response_checkpoint: TreeMap[u256, u256]
 
     def __init__(self):
         self.job_count = u256(0)
@@ -110,6 +114,28 @@ class CleanCheckpoint(gl.Contract):
         except Exception:
             return u256(0)
 
+    def _close_job(self, job_id: u256, verdict: str, provider_paid: u256, provider_refunded: u256, client_paid: u256, client_refunded: u256) -> str:
+        total = provider_paid + provider_refunded + client_paid + client_refunded
+        expected = self.job_bond[job_id] + (self.job_fee[job_id] if self.job_status[job_id] != "PROVIDER_ACCEPTED" else u256(0))
+        if total != expected or self.total_held < total:
+            raise gl.vm.UserError("ESCROW_INVARIANT_BROKEN")
+        self.job_status[job_id] = "SETTLED"
+        self.job_verdict[job_id] = verdict
+        self.job_provider_paid[job_id] = provider_paid
+        self.job_provider_refunded[job_id] = provider_refunded
+        self.job_client_paid[job_id] = client_paid
+        self.job_client_refunded[job_id] = client_refunded
+        self.total_held = self.total_held - total
+        self.total_paid = self.total_paid + provider_paid + client_paid
+        self.total_refunded = self.total_refunded + provider_refunded + client_refunded
+        provider_total = provider_paid + provider_refunded
+        client_total = client_paid + client_refunded
+        if provider_total > u256(0):
+            _Recipient(Address(self.job_provider[job_id])).emit_transfer(value=provider_total)
+        if client_total > u256(0):
+            _Recipient(Address(self.job_client[job_id])).emit_transfer(value=client_total)
+        return verdict
+
     @gl.public.write
     def create_job(self, title: str, service: str, provider: str, fee: u256, terms_url: str, terms_digest: str) -> typing.Any:
         if len(title) < 4 or len(title) > 100:
@@ -161,6 +187,8 @@ class CleanCheckpoint(gl.Contract):
             raise gl.vm.UserError("WRONG_STATE")
         if self.job_service_deadline.get(job_id, u256(0)) == u256(0):
             raise gl.vm.UserError("SCHEDULE_REQUIRED")
+        if self._now() > self.job_service_deadline[job_id]:
+            raise gl.vm.UserError("ACCEPTANCE_CLOSED")
         bond = gl.message.value
         if bond == u256(0):
             raise gl.vm.UserError("BOND_REQUIRED")
@@ -178,6 +206,8 @@ class CleanCheckpoint(gl.Contract):
             raise gl.vm.UserError("CLIENT_ONLY")
         if self.job_status[job_id] != "PROVIDER_ACCEPTED":
             raise gl.vm.UserError("NOT_ACCEPTED")
+        if self._now() > self.job_service_deadline[job_id]:
+            raise gl.vm.UserError("FUNDING_CLOSED")
         fee = self.job_fee[job_id]
         if gl.message.value != fee:
             raise gl.vm.UserError("WRONG_VALUE")
@@ -198,6 +228,11 @@ class CleanCheckpoint(gl.Contract):
         if sender != client and sender != provider:
             raise gl.vm.UserError("PARTY_ONLY")
         role = "CLIENT" if sender == client else "PROVIDER"
+        now = self._now()
+        if role == "PROVIDER" and now > self.job_service_deadline[job_id]:
+            raise gl.vm.UserError("PROVIDER_EVIDENCE_CLOSED")
+        if role == "CLIENT" and now > self.job_challenge_deadline[job_id]:
+            raise gl.vm.UserError("CLIENT_EVIDENCE_CLOSED")
         if role == "PROVIDER" and kind not in ("ARRIVAL", "WORK_STARTED", "CHECKLIST_SUBMITTED", "COMPLETION"):
             raise gl.vm.UserError("WRONG_SOURCE_ROLE")
         if role == "CLIENT" and kind not in ("CLIENT_RESPONSE", "CANCELLATION", "COMPLETION_ACK"):
@@ -224,8 +259,12 @@ class CleanCheckpoint(gl.Contract):
         self.checkpoint_previous[checkpoint_id] = previous_plus_one
         if role == "CLIENT":
             self.latest_client_checkpoint[job_id] = checkpoint_id + u256(1)
+            if kind in ("CLIENT_RESPONSE", "CANCELLATION", "COMPLETION_ACK"):
+                self.client_response_checkpoint[job_id] = checkpoint_id + u256(1)
         else:
             self.latest_provider_checkpoint[job_id] = checkpoint_id + u256(1)
+            if kind == "COMPLETION":
+                self.provider_completion_checkpoint[job_id] = checkpoint_id + u256(1)
         self.checkpoint_count = checkpoint_id + u256(1)
         return checkpoint_id
 
@@ -237,18 +276,13 @@ class CleanCheckpoint(gl.Contract):
             raise gl.vm.UserError("CLIENT_ONLY")
         if self.job_status[job_id] != "CHECKPOINTS_ACTIVE":
             raise gl.vm.UserError("WRONG_STATE")
-        if self.latest_provider_checkpoint.get(job_id, u256(0)) == u256(0):
-            raise gl.vm.UserError("PROVIDER_EVIDENCE_REQUIRED")
+        if self._now() > self.job_challenge_deadline[job_id]:
+            raise gl.vm.UserError("CONFIRMATION_CLOSED")
+        if self.provider_completion_checkpoint.get(job_id, u256(0)) == u256(0):
+            raise gl.vm.UserError("PROVIDER_COMPLETION_REQUIRED")
         fee = self.job_fee[job_id]
         bond = self.job_bond[job_id]
-        payout = fee + bond
-        self.job_status[job_id] = "SETTLED"
-        self.job_verdict[job_id] = "FULL_PAYOUT"
-        self.job_provider_paid[job_id] = payout
-        self.total_held = self.total_held - payout
-        self.total_paid = self.total_paid + payout
-        _Recipient(Address(self.job_provider[job_id])).emit_transfer(value=payout)
-        return "FULL_PAYOUT"
+        return self._close_job(job_id, "FULL_PAYOUT", fee, bond, u256(0), u256(0))
 
     @gl.public.write
     def open_dispute(self, job_id: u256) -> typing.Any:
@@ -260,7 +294,7 @@ class CleanCheckpoint(gl.Contract):
             raise gl.vm.UserError("PARTY_ONLY")
         if self._now() > self.job_challenge_deadline[job_id]:
             raise gl.vm.UserError("CHALLENGE_CLOSED")
-        if self.latest_client_checkpoint.get(job_id, u256(0)) == u256(0) or self.latest_provider_checkpoint.get(job_id, u256(0)) == u256(0):
+        if self.client_response_checkpoint.get(job_id, u256(0)) == u256(0) or self.provider_completion_checkpoint.get(job_id, u256(0)) == u256(0):
             raise gl.vm.UserError("BOTH_SOURCES_REQUIRED")
         self.job_status[job_id] = "DISPUTED"
         return "DISPUTED"
@@ -271,8 +305,10 @@ class CleanCheckpoint(gl.Contract):
             raise gl.vm.UserError("JOB_NOT_FOUND")
         if self.job_status[job_id] != "DISPUTED":
             raise gl.vm.UserError("NOT_DISPUTED")
-        provider_id = self.latest_provider_checkpoint[job_id] - u256(1)
-        client_id = self.latest_client_checkpoint[job_id] - u256(1)
+        if self._now() > self.job_recovery_deadline[job_id]:
+            raise gl.vm.UserError("ADJUDICATION_CLOSED")
+        provider_id = self.provider_completion_checkpoint[job_id] - u256(1)
+        client_id = self.client_response_checkpoint[job_id] - u256(1)
         terms_url = self.job_terms_url[job_id]
         provider_url = self.checkpoint_url[provider_id]
         client_url = self.checkpoint_url[client_id]
@@ -343,39 +379,37 @@ class CleanCheckpoint(gl.Contract):
         else:
             provider_share = u256(0)
         client_share = fee - provider_share
-        provider_total = provider_share + bond
-        self.job_status[job_id] = "SETTLED"
-        self.job_provider_paid[job_id] = provider_total
-        self.job_client_refunded[job_id] = client_share
-        self.total_held = self.total_held - fee - bond
-        self.total_paid = self.total_paid + provider_total
-        self.total_refunded = self.total_refunded + client_share
-        if provider_total > u256(0):
-            _Recipient(Address(self.job_provider[job_id])).emit_transfer(value=provider_total)
-        if client_share > u256(0):
-            _Recipient(Address(self.job_client[job_id])).emit_transfer(value=client_share)
-        return verdict
+        return self._close_job(job_id, verdict, provider_share, bond, u256(0), client_share)
 
     @gl.public.write
     def recover(self, job_id: u256) -> typing.Any:
         if job_id >= self.job_count:
             raise gl.vm.UserError("JOB_NOT_FOUND")
-        if self.job_status[job_id] != "RECOVERY":
-            raise gl.vm.UserError("NOT_RECOVERABLE")
-        if self._now() <= self.job_recovery_deadline[job_id]:
-            raise gl.vm.UserError("RECOVERY_NOT_DUE")
+        sender = self._sender()
+        if sender != self.job_client[job_id] and sender != self.job_provider[job_id]:
+            raise gl.vm.UserError("PARTY_ONLY")
+        status = self.job_status[job_id]
+        now = self._now()
         fee = self.job_fee[job_id]
         bond = self.job_bond[job_id]
-        self.job_status[job_id] = "SETTLED"
-        self.job_verdict[job_id] = "BOUNDED_RECOVERY"
-        self.job_provider_paid[job_id] = bond
-        self.job_client_refunded[job_id] = fee
-        self.total_held = self.total_held - fee - bond
-        self.total_paid = self.total_paid + bond
-        self.total_refunded = self.total_refunded + fee
-        _Recipient(Address(self.job_provider[job_id])).emit_transfer(value=bond)
-        _Recipient(Address(self.job_client[job_id])).emit_transfer(value=fee)
-        return "BOUNDED_RECOVERY"
+        if status == "PROVIDER_ACCEPTED":
+            if now <= self.job_service_deadline[job_id]:
+                raise gl.vm.UserError("RECOVERY_NOT_DUE")
+            return self._close_job(job_id, "CLIENT_NON_FUNDING", u256(0), bond, u256(0), u256(0))
+        if status == "ADJUDICATED":
+            return self.settle(job_id)
+        if status not in ("CHECKPOINTS_ACTIVE", "DISPUTED", "RECOVERY"):
+            raise gl.vm.UserError("NOT_RECOVERABLE")
+        if now <= self.job_recovery_deadline[job_id]:
+            raise gl.vm.UserError("RECOVERY_NOT_DUE")
+        provider_completed = self.provider_completion_checkpoint.get(job_id, u256(0)) != u256(0)
+        client_responded = self.client_response_checkpoint.get(job_id, u256(0)) != u256(0)
+        if status == "CHECKPOINTS_ACTIVE" and not provider_completed:
+            return self._close_job(job_id, "PROVIDER_COMPLETION_DEFAULT", u256(0), u256(0), bond, fee)
+        if status == "CHECKPOINTS_ACTIVE" and not client_responded:
+            return self._close_job(job_id, "CLIENT_RESPONSE_DEFAULT", fee, bond, u256(0), u256(0))
+        verdict = "ADJUDICATION_TIMEOUT" if status == "DISPUTED" else "EVIDENCE_RECOVERY"
+        return self._close_job(job_id, verdict, u256(0), bond, u256(0), fee)
 
     @gl.public.view
     def get_job(self, job_id: u256) -> typing.Any:
@@ -388,7 +422,11 @@ class CleanCheckpoint(gl.Contract):
             "verdict": self.job_verdict[job_id], "service_deadline": int(self.job_service_deadline.get(job_id, u256(0))),
             "challenge_deadline": int(self.job_challenge_deadline.get(job_id, u256(0))),
             "recovery_deadline": int(self.job_recovery_deadline.get(job_id, u256(0))),
+            "provider_completion_checkpoint": int(self.provider_completion_checkpoint.get(job_id, u256(0))),
+            "client_response_checkpoint": int(self.client_response_checkpoint.get(job_id, u256(0))),
             "provider_paid": int(self.job_provider_paid.get(job_id, u256(0))),
+            "provider_refunded": int(self.job_provider_refunded.get(job_id, u256(0))),
+            "client_paid": int(self.job_client_paid.get(job_id, u256(0))),
             "client_refunded": int(self.job_client_refunded.get(job_id, u256(0)))
         }, sort_keys=True, separators=(",", ":"))
 

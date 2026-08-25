@@ -14,7 +14,7 @@ def test_header_and_ascii():
 
 def test_ast_and_required_surfaces():
     ast.parse(TEXT)
-    for marker in ("@gl.public.write.payable", "prompt_comparative", "emit_transfer", "record_checkpoint", "get_job"):
+    for marker in ("@gl.public.write.payable", "prompt_comparative", "emit_transfer", "record_checkpoint", "get_job", "CLIENT_NON_FUNDING", "PROVIDER_COMPLETION_DEFAULT", "CLIENT_RESPONSE_DEFAULT", "ADJUDICATION_TIMEOUT"):
         assert marker in TEXT
 
 
@@ -22,6 +22,8 @@ def test_nondeterminism_is_local_and_writes_do_not_scan_history():
     assert "def evaluate()" in TEXT
     assert "gl.nondet.web.render" in TEXT
     assert "for " not in TEXT[TEXT.index("def record_checkpoint"):TEXT.index("def confirm_completion")]
+    assert "provider_id = self.provider_completion_checkpoint[job_id]" in TEXT
+    assert "client_id = self.client_response_checkpoint[job_id]" in TEXT
 
 
 def test_no_secret_material():

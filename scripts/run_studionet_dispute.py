@@ -8,7 +8,7 @@ from genlayer_py import create_account, create_client
 from genlayer_py.chains import studionet
 
 
-ADDRESS = "0x6e2A785B1699067F8573e765B601f651917D7e47"
+ADDRESS = "0x9bC7649FA843E5FFa4E6f63E2b392D0071E86016"
 RPC_URL = "https://studio.genlayer.com/api"
 FEE = 10**16
 BOND = 10**15
@@ -104,11 +104,12 @@ def main():
         raise RuntimeError("Unexpected bounded verdict: " + verdict)
 
     transactions["settle"] = submit(client_account, "settle", [job_id])
-    expected_provider = BOND + (FEE * 75 // 100)
+    expected_provider = FEE * 75 // 100
     expected_client = FEE - (FEE * 75 // 100)
     final = wait_for("PARTIAL_SETTLEMENT", lambda: {
         "ready": read("get_job", [job_id])["status"] == "SETTLED"
         and int(read("get_job", [job_id])["provider_paid"]) == expected_provider
+        and int(read("get_job", [job_id])["provider_refunded"]) == BOND
         and int(read("get_job", [job_id])["client_refunded"]) == expected_client
         and int(read("get_totals")["held"]) == held_before
         and int(chain.get_balance(ADDRESS)) == contract_before,
