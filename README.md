@@ -30,7 +30,7 @@ DISPUTED | RECOVERY -> SETTLED                       (stalled adjudication/evide
 - Explorer: https://explorer-studio.genlayer.com/address/0x9bC7649FA843E5FFa4E6f63E2b392D0071E86016
 - Demonstration cost: client fee `0.01 GEN`; provider bond `0.001 GEN`.
 
-The landing page reads the latest settled demonstrations without requiring a wallet. Writes require two funded wallets and automatically request the GenLayer Studio network.
+The landing page reads the latest on-chain jobs and their live states without requiring a wallet. Writes require two funded wallets and automatically request the GenLayer Studio network.
 
 ## Verification
 
