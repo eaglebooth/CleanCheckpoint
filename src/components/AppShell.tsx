@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, ExternalLink, ShieldCheck, Sparkles, Wallet, X } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Check, ExternalLink, ShieldCheck, Wallet, X } from "lucide-react";
 import { activeNetwork, connectWallet, explorerUrl, readContract, unwrap, writeContract } from "@/lib/genlayer";
 
 type Job = { id: number; client: string; provider: string; title: string; service: string; fee: string; bond: string; status: string; verdict: string; service_deadline: number; challenge_deadline: number; recovery_deadline: number; provider_paid: string; provider_refunded: string; client_paid: string; client_refunded: string };
@@ -158,7 +159,7 @@ export default function AppShell() {
   return <main>
     <section className="hero" id="home">
       <nav className={`nav shell ${scrolled ? "nav-scrolled" : ""}`}>
-        <a className="brand" href="#home"><span className="brand-mark"><Sparkles size={22}/></span><span>CleanCheckpoint</span></a>
+        <a className="brand" href="#home"><Image className="brand-logo" src="/clean-checkpoint-logo.png" alt="CleanCheckpoint" width={42} height={42} priority/><span>CleanCheckpoint</span></a>
         <div className="nav-links"><a href="#services">Services</a><a href="#evidence">Evidence</a><a href="#protocol">How it works</a><a href="#trust">Trust model</a><a href="#faq">FAQ</a></div>
         <div className="nav-actions"><a className="icon-btn" href={explorerUrl()} target="_blank" rel="noreferrer" aria-label="Open CleanCheckpoint contract in GenLayer Explorer" title="Open contract in Explorer"><ExternalLink size={19}/></a><button className="dark-btn" onClick={connect}><Wallet size={17}/>{shortWallet}</button></div>
       </nav>
@@ -186,7 +187,7 @@ export default function AppShell() {
 
     <section className="faq section" id="faq"><div className="shell"><div className="section-kicker center">● FAQ</div><h2 className="center">Transparent by design.</h2>{[["Does CleanCheckpoint judge photos?","No. The MVP deliberately avoids subjective image grading and private home imagery."],["When does GenLayer consensus run?","Only after both parties have submitted role-bound evidence and a dispute is opened."],["What if someone disappears?","Every funded state has a locked terminal deadline. Non-funding returns the provider bond; missing completion protects the client; client silence pays documented completion; stalled adjudication returns each principal."],["Is transaction finality treated as success?","No. The app inspects contract-level rollback payloads and re-reads the affected job before reporting verified success."]].map(([q,a],i)=><details key={q} open={i===0}><summary>{q}<span>+</span></summary><p>{a}</p></details>)}</div></section>
 
-    <footer><div className="shell"><a className="brand" href="#home"><span className="brand-mark"><Sparkles size={22}/></span>CleanCheckpoint</a><p>Checkpoint-based service verification on GenLayer.</p></div></footer>
+    <footer><div className="shell"><a className="brand" href="#home"><Image className="brand-logo" src="/clean-checkpoint-logo.png" alt="" width={42} height={42}/><span>CleanCheckpoint</span></a><p>Checkpoint-based service verification on GenLayer.</p></div></footer>
 
     {workspace && <div className="modal-backdrop"><div className="workspace-panel"><div className="panel-head"><div><div className="section-kicker">Contract workspace · {activeNetwork()}</div><h2>Run the real lifecycle</h2><p className="workspace-note">Use two funded wallets: client locks 0.01 GEN and provider locks a 0.001 GEN bond. Studio deployments are Explorer Preview projects.</p></div><button className="icon-btn" onClick={() => setWorkspace(false)} aria-label="Close contract workspace"><X/></button></div><div className="workspace-grid">
       <section className="form-card"><h3>Create a service job</h3><label>Job title<input value={create.title} onChange={e=>setCreate({...create,title:e.target.value})}/></label><div className="two"><label>Service<select value={create.service} onChange={e=>setCreate({...create,service:e.target.value})}><option>HOME</option><option>OFFICE</option><option>MOVE_OUT</option><option>DEEP_CLEAN</option></select></label><label>Fee (GEN)<input value={create.fee} onChange={e=>setCreate({...create,fee:e.target.value})}/></label></div><label>Provider wallet<input placeholder="0x…" value={create.provider} onChange={e=>setCreate({...create,provider:e.target.value})}/></label><label>Immutable terms URL<input placeholder="https://ipfs.io/ipfs/…" value={create.termsUrl} onChange={e=>setCreate({...create,termsUrl:e.target.value})}/></label><label>Terms SHA-256<input placeholder="sha256:…" value={create.termsDigest} onChange={e=>setCreate({...create,termsDigest:e.target.value})}/></label><button className="blue-btn full" disabled={!!busy} onClick={createJob}>Create on-chain <ArrowRight size={18}/></button></section>
