@@ -10,6 +10,7 @@ const endpoint = process.env.NEXT_PUBLIC_GENLAYER_RPC;
 const chains = { localnet, studionet, testnetBradbury };
 const readClient = createClient({ chain: chains[network] ?? studionet, ...(endpoint ? { endpoint } : {}) });
 const storageKey = "cleancheckpoint.contract";
+const studionetChainId = "0x" + studionet.id.toString(16);
 
 type RuntimeClient = {
   connect?: (name: NetworkName) => Promise<unknown>;
@@ -39,10 +40,32 @@ function findRuntimeFailure(value: unknown, seen = new Set<unknown>()): RuntimeF
 export const address = () => typeof window !== "undefined" && localStorage.getItem(storageKey) || process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "";
 export const setAddress = (value: string) => localStorage.setItem(storageKey, value.trim());
 export const explorerUrl = () => `${process.env.NEXT_PUBLIC_EXPLORER_BASE || "https://explorer-studio.genlayer.com/address/"}${address()}`;
+export const activeNetwork = () => network;
+
+async function ensureWalletNetwork(): Promise<void> {
+  if (!window.ethereum || network !== "studionet") return;
+  try {
+    await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: studionetChainId }] });
+  } catch (error) {
+    const code = Number((error as { code?: number })?.code);
+    if (code !== 4902 && code !== -32603) throw error;
+    await window.ethereum.request({
+      method: "wallet_addEthereumChain",
+      params: [{
+        chainId: studionetChainId,
+        chainName: "GenLayer Studio Network",
+        nativeCurrency: { name: "GEN Token", symbol: "GEN", decimals: 18 },
+        rpcUrls: [endpoint || "https://studio.genlayer.com/api"],
+        blockExplorerUrls: ["https://explorer-studio.genlayer.com"],
+      }],
+    });
+  }
+}
 
 export async function connectWallet(): Promise<ContractResult> {
   if (!window.ethereum) return { success: false, error: "Install or unlock an EVM wallet first." };
   try {
+    await ensureWalletNetwork();
     const accounts = await window.ethereum.request({ method: "eth_requestAccounts" }) as string[];
     return accounts[0] ? { success: true, data: accounts[0] } : { success: false, error: "No account selected." };
   } catch (error) { return { success: false, error: error instanceof Error ? error.message : "Wallet connection failed." }; }
@@ -59,6 +82,7 @@ export async function writeContract(functionName: string, args: unknown[] = [], 
   if (!address() || address().endsWith("0000000000000000000000000000000000000000")) return { success: false, error: "Configure a deployed contract address first." };
   let hash = "";
   try {
+    await ensureWalletNetwork();
     const accounts = await window.ethereum.request({ method: "eth_requestAccounts" }) as string[];
     if (!accounts[0]) return { success: false, error: "No wallet account selected." };
     const client = createClient({ chain: chains[network] ?? studionet, ...(endpoint ? { endpoint } : {}), provider: window.ethereum, account: accounts[0] as `0x${string}` }) as unknown as RuntimeClient;
@@ -76,7 +100,13 @@ export async function writeContract(functionName: string, args: unknown[] = [], 
 
 export function unwrap<T>(value: unknown): T | null {
   try {
-    if (typeof value === "string") return JSON.parse(value) as T;
+    if (typeof value === "string") {
+      const exactAmounts = value.replace(
+        /"(fee|bond|provider_paid|provider_refunded|client_paid|client_refunded|deposited|held|paid|refunded)":(\d+)/g,
+        '"$1":"$2"',
+      );
+      return JSON.parse(exactAmounts) as T;
+    }
     if (value && typeof value === "object" && "result" in value) return unwrap<T>((value as { result: unknown }).result);
     return value as T;
   } catch { return null; }

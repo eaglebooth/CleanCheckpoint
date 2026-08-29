@@ -22,6 +22,26 @@ CHECKPOINTS_ACTIVE -> SETTLED                         (completion/response timeo
 DISPUTED | RECOVERY -> SETTLED                       (stalled adjudication/evidence timeout)
 ```
 
+## Current deployment
+
+- Website: https://clean-checkpoint.vercel.app/
+- Network: GenLayer studionet (`Preview` in Project Explorer)
+- Contract: `0x9bC7649FA843E5FFa4E6f63E2b392D0071E86016`
+- Explorer: https://explorer-studio.genlayer.com/address/0x9bC7649FA843E5FFa4E6f63E2b392D0071E86016
+- Demonstration cost: client fee `0.01 GEN`; provider bond `0.001 GEN`.
+
+The landing page reads the latest settled demonstrations without requiring a wallet. Writes require two funded wallets and automatically request the GenLayer Studio network.
+
+## Verification
+
+```bash
+python -m pytest tests -p no:cacheprovider
+npm run lint
+npm run build
+```
+
+Runtime evidence for the current deployment lives in `evidence/STUDIONET_TIMEOUT_MATRIX.md`. Explorer submission readiness and the remaining semantic-dispute seeding step live in `deployment/EXPLORER_READINESS.md`.
+
 ## Local setup
 
 ```bash
