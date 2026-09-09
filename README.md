@@ -52,6 +52,8 @@ npm run dev
 
 Configure a deployed address from the header menu. The app uses `genlayer-js`, requests the wallet provider only for writes, waits for acceptance, inspects execution metadata when available, and re-reads the affected job before showing verified success.
 
+The contract workspace includes a seven-stage guided lifecycle. It identifies the connected wallet as client, provider, observer, or disconnected; derives completed and available stages from live contract state; and explains why later actions remain locked. Open `/?workspace=open` to link directly to the walkthrough.
+
 ## Contract interface
 
 - `create_job(...)`: locks the client, provider, service, fee, terms URL and digest.

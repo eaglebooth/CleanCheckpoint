@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./lifecycle.css";
 
 export const metadata: Metadata = {
   title: "CleanCheckpoint | Verified service checkpoints on GenLayer",

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-09
+
+- Added a seven-stage, role-aware lifecycle guide to the live contract workspace.
+- Added automatic client, provider, observer, and disconnected wallet classification.
+- Added state-derived complete, available, and locked guidance for every lifecycle stage.
+- Added four frontend unit tests covering role normalization and lifecycle progression.
+- Preserved the current studionet contract and deployment address; this milestone requires no contract redeployment.
+
 ## 2026-08-29
 
 - Added a public, wallet-free snapshot of the five settled studionet demonstrations.
