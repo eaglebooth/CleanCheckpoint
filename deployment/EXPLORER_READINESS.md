@@ -9,16 +9,16 @@
 - Category tag 2: Escrow Claims (`accept_job`, `fund_job`, `settle`, and `recover` custody and distribute GEN)
 - Website: https://clean-checkpoint.vercel.app/
 - GitHub: https://github.com/eaglebooth/CleanCheckpoint
-- Contract: https://explorer-studio.genlayer.com/address/0x9bC7649FA843E5FFa4E6f63E2b392D0071E86016
+- Contract: https://explorer-studio.genlayer.com/address/0xfc6c3abc5C202A37c8389a96b15165f2Fc5D7e1c
 - Network: studionet
 - Logo: `public/clean-checkpoint-logo.png` (1254 x 1254 PNG, under 2 MB)
 
 ## Current public state
 
-The current contract exposes five settled jobs: client non-funding, missing provider completion, client-response timeout, adjudication timeout, and deterministic full payout. Contract schema and all public methods are readable from studionet.
+Security v2 is deployed with a clean state. The `get_totals` schema was read successfully from Studionet with zero jobs, checkpoints, deposits, and held funds. Historical v1 lifecycle evidence remains under `evidence/` and is intentionally labeled with its original address.
 
 ## Blocker before submission
 
-Seed one successful semantic dispute on the current contract: create job, set schedule, provider accepts and bonds 0.001 GEN, client funds 0.01 GEN, provider records COMPLETION, client records CLIENT_RESPONSE, open dispute, adjudicate, and settle. Verify a final `SETTLED` state with `PARTIAL_PAYOUT_75` or `PARTIAL_PAYOUT_50` on the current address.
+Seed the Security v2 address with a deterministic funded lifecycle, a successful semantic dispute, and a tampered-digest recovery. Verify `integrity_status=VERIFIED` for the semantic result, `integrity_status=FAILED` for tampered evidence, and zero held funds after terminal settlement.
 
-Do not deploy a new contract for the frontend improvements in this release. Redeploy only if the current contract source must change or the Studio address stops returning its schema.
+Do not redeploy again for frontend-only improvements. The next address change is justified only by a new contract milestone or a failed source-parity check.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-09 — Evidence Integrity & Prompt Security v2
+
+- Replaced rendered-text trust with byte-exact SHA-256 verification for all three adjudication sources.
+- Added single-use checkpoint digest indexing that rejects evidence replay before state mutation.
+- Added full hexadecimal and zero-address validation for provider identities.
+- Added explicit untrusted-source boundaries, a fixed output canary, and fail-closed integrity state.
+- Exposed `integrity_status` through `get_job` and the contract workspace.
+- Added four contract security regressions covering address spoofing, evidence replay, byte tampering, and prompt-canary manipulation.
+- Deployed the Security v2 contract on Studionet at `0xfc6c3abc5C202A37c8389a96b15165f2Fc5D7e1c` and verified its empty-state interface.
+
 ## 2026-09-09
 
 - Added a seven-stage, role-aware lifecycle guide to the live contract workspace.

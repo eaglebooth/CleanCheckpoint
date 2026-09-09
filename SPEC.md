@@ -15,6 +15,9 @@
 11. Every funded nonterminal state has a deadline-based terminal exit.
 12. `total_deposited = total_held + total_paid + total_refunded` after every terminal path.
 13. Provider earnings, provider bond refunds, client compensation, and client fee refunds are stored separately.
+14. Every checkpoint digest is single-use across the deployment and rejected before mutation on replay.
+15. Adjudication may use a source only when SHA-256 of its fetched bytes equals the committed digest.
+16. Missing, tampered, undecodable, or canary-invalid evidence always enters `EVIDENCE_CONFLICT`; it cannot authorize payment.
 
 ## Timeout settlement matrix
 
@@ -68,7 +71,7 @@ Direct Mode tests execute the actual contract class and assert authoritative rea
 
 ## Evidence authority
 
-The contract accepts only immutable gateway forms and stores exact URLs, SHA-256 declarations, actor wallet, source role, checkpoint kind, revision, and predecessor. Production deployments should additionally pin approved gateway hosts and booking-provider signatures. URL allowlisting alone is not claimed as proof of event truth.
+The contract accepts only immutable gateway forms and stores exact URLs, SHA-256 commitments, actor wallet, source role, checkpoint kind, revision, and predecessor. During adjudication it fetches the raw bytes, recomputes SHA-256, and excludes any mismatched source from the jury. A global digest index prevents the same checkpoint payload from being replayed. Production deployments should additionally pin approved gateway hosts and booking-provider signatures. Content integrity is not claimed as proof of the underlying real-world event.
 
 ## Resource bounds
 

@@ -11,7 +11,7 @@ from genlayer_py import create_account, create_client
 from genlayer_py.chains import studionet
 
 
-ADDRESS = "0x9bC7649FA843E5FFa4E6f63E2b392D0071E86016"
+ADDRESS = os.environ.get("CLEANCHECKPOINT_CONTRACT_ADDRESS", "0xfc6c3abc5C202A37c8389a96b15165f2Fc5D7e1c")
 RPC_URL = "https://studio.genlayer.com/api"
 FEE = 10**16
 BOND = 10**15

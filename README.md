@@ -26,11 +26,13 @@ DISPUTED | RECOVERY -> SETTLED                       (stalled adjudication/evide
 
 - Website: https://clean-checkpoint.vercel.app/
 - Network: GenLayer studionet (`Preview` in Project Explorer)
-- Contract: `0x9bC7649FA843E5FFa4E6f63E2b392D0071E86016`
-- Explorer: https://explorer-studio.genlayer.com/address/0x9bC7649FA843E5FFa4E6f63E2b392D0071E86016
+- Contract: `0xfc6c3abc5C202A37c8389a96b15165f2Fc5D7e1c`
+- Explorer: https://explorer-studio.genlayer.com/address/0xfc6c3abc5C202A37c8389a96b15165f2Fc5D7e1c
 - Demonstration cost: client fee `0.01 GEN`; provider bond `0.001 GEN`.
 
 The landing page reads the latest on-chain jobs and their live states without requiring a wallet. Writes require two funded wallets and automatically request the GenLayer Studio network.
+
+Security v2 is deployed at the address above. Its empty initial state and `get_totals` interface were verified on Studionet before switching the frontend configuration.
 
 ## Verification
 
@@ -67,6 +69,8 @@ The contract workspace includes a seven-stage guided lifecycle. It identifies th
 - `settle(job_id)`: deterministic payout calculation and transfers.
 - `recover(job_id)`: permissionless-for-parties terminal router covering every funded nonterminal state.
 - `get_job(job_id)`, `get_totals()`: reviewer-facing authoritative views.
+
+Security v2 recomputes SHA-256 from exact fetched bytes before adjudication, rejects reused checkpoint digests, validates every provider-address nibble, and treats source text as data inside explicit untrusted boundaries. Any digest or output-canary failure routes to bounded recovery rather than a paying verdict.
 
 ## Trust boundaries and limitations
 

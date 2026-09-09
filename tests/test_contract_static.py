@@ -18,9 +18,14 @@ def test_ast_and_required_surfaces():
         assert marker in TEXT
 
 
+def test_evidence_integrity_and_prompt_boundaries_are_enforced():
+    for marker in ("hashlib.sha256(body)", "gl.nondet.web.get", "used_checkpoint_digest", "EVIDENCE_ALREADY_USED", "UNTRUSTED_TERMS", "CC_V2", "integrity_status"):
+        assert marker in TEXT
+
+
 def test_nondeterminism_is_local_and_writes_do_not_scan_history():
     assert "def evaluate()" in TEXT
-    assert "gl.nondet.web.render" in TEXT
+    assert "gl.nondet.web.get" in TEXT
     assert "for " not in TEXT[TEXT.index("def record_checkpoint"):TEXT.index("def confirm_completion")]
     assert "provider_id = self.provider_completion_checkpoint[job_id]" in TEXT
     assert "client_id = self.client_response_checkpoint[job_id]" in TEXT
