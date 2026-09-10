@@ -9,6 +9,7 @@
 - Exposed `integrity_status` through `get_job` and the contract workspace.
 - Added four contract security regressions covering address spoofing, evidence replay, byte tampering, and prompt-canary manipulation.
 - Deployed the Security v2 contract on Studionet at `0xfc6c3abc5C202A37c8389a96b15165f2Fc5D7e1c` and verified its empty-state interface.
+- Completed the live Security v2 matrix: happy payout, verified semantic dispute, replay rollback, tamper fail-closed recovery, exact refunds, and zero residual custody.
 
 ## 2026-09-09
 

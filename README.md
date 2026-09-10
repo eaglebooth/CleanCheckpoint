@@ -32,7 +32,7 @@ DISPUTED | RECOVERY -> SETTLED                       (stalled adjudication/evide
 
 The landing page reads the latest on-chain jobs and their live states without requiring a wallet. Writes require two funded wallets and automatically request the GenLayer Studio network.
 
-Security v2 is deployed at the address above. Its empty initial state and `get_totals` interface were verified on Studionet before switching the frontend configuration.
+Security v2 is deployed at the address above and fully exercised on Studionet. Four runtime scenarios cover happy settlement, verified semantic consensus, replay rollback, and tamper recovery; the final ledger holds zero GEN and satisfies custody conservation. See [`evidence/STUDIONET_SECURITY_V2.md`](evidence/STUDIONET_SECURITY_V2.md) for exact transaction hashes and readbacks.
 
 ## Verification
 

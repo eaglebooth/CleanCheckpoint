@@ -15,10 +15,10 @@
 
 ## Current public state
 
-Security v2 is deployed with a clean state. The `get_totals` schema was read successfully from Studionet with zero jobs, checkpoints, deposits, and held funds. Historical v1 lifecycle evidence remains under `evidence/` and is intentionally labeled with its original address.
+Security v2 is deployed and seeded with four reproducible runtime scenarios: happy settlement, verified semantic dispute, replay rejection, and tamper recovery. Final totals are 4 jobs, 5 checkpoints, 0.044 GEN deposited, 0 held, 0.0185 paid, and 0.0255 refunded. Historical v1 lifecycle evidence remains under `evidence/` and is intentionally labeled with its original address.
 
-## Blocker before submission
+## Submission status
 
-Seed the Security v2 address with a deterministic funded lifecycle, a successful semantic dispute, and a tampered-digest recovery. Verify `integrity_status=VERIFIED` for the semantic result, `integrity_status=FAILED` for tampered evidence, and zero held funds after terminal settlement.
+The Security v2 runtime gate is complete. Exact transaction hashes and authoritative readbacks are in `evidence/STUDIONET_SECURITY_V2.md`.
 
 Do not redeploy again for frontend-only improvements. The next address change is justified only by a new contract milestone or a failed source-parity check.
